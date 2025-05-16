@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import MdxPreview from './MdxPreview';
+import MdxPreview from '../mdx/MdxPreview';
 
 /**
  * Componente que maneja la funcionalidad de vista previa para el editor MDX

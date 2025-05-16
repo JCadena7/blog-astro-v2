@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminTable } from '../AdminTable';
-import MdxPreview from '../../MdxPreview';
+import MdxPreview from '../../mdx/MdxPreview';
 
 interface Post {
   id: number;
