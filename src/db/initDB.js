@@ -28,9 +28,9 @@ async function initDatabase() {
   const client = await pool.connect();
   try {
     console.log('⏳ Iniciando creación de tablas...');
-    
+
     await client.query('BEGIN');
-    
+
     // 1. Crear tabla roles si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS roles (
@@ -41,9 +41,9 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla roles creada/verificada');
-    
+
     // 2. Crear tabla usuarios si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
@@ -56,9 +56,9 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla usuarios creada/verificada');
-    
+
     // 3. Crear tabla estados_publicacion si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS estados_publicacion (
@@ -69,9 +69,9 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla estados_publicacion creada/verificada');
-    
+
     // 4. Crear tabla categorias si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS categorias (
@@ -82,9 +82,9 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla categorias creada/verificada');
-    
+
     // 5. Crear tabla posts si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS posts (
@@ -102,9 +102,9 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla posts creada/verificada');
-    
+
     // 6. Crear tabla posts_categorias (relación muchos a muchos) si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS posts_categorias (
@@ -113,9 +113,9 @@ async function initDatabase() {
         PRIMARY KEY (post_id, categoria_id)
       );
     `);
-    
+
     console.log('✅ Tabla posts_categorias creada/verificada');
-    
+
     // 7. Crear tabla comentarios si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS comentarios (
@@ -128,9 +128,9 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla comentarios creada/verificada');
-    
+
     // 8. Crear tabla revisiones_posts si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS revisiones_posts (
@@ -143,9 +143,9 @@ async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    
+
     console.log('✅ Tabla revisiones_posts creada/verificada');
-    
+
     // 9. Crear tabla permisos si no existe
     await client.query(`
       CREATE TABLE IF NOT EXISTS permisos (
@@ -167,9 +167,34 @@ async function initDatabase() {
       );
     `);
     console.log('✅ Tabla roles_permisos creada/verificada');
-    
+
+    // 11. Crear tabla reacciones
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tipos_reacciones (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(50) UNIQUE NOT NULL,
+        emoji VARCHAR(10),
+        descripcion TEXT
+      );
+    `);
+    console.log('✅ Tabla tipos_reacciones creada/verificada');
+
+    // 12. Crear tabla reacciones
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS reacciones (
+        id SERIAL PRIMARY KEY,
+        post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
+        usuario_id INTEGER REFERENCES usuarios(id),
+        tipo_reaccion_id INTEGER REFERENCES tipos_reacciones(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabla reacciones creada/verificada');
+
+
     // Verificar e insertar datos iniciales si es necesario
-    
+
     // 1. Insertar roles por defecto si no existen
     const rolesDefault = [
       { nombre: 'administrador', descripcion: 'Control total del sistema' },
@@ -177,7 +202,7 @@ async function initDatabase() {
       { nombre: 'autor', descripcion: 'Puede crear contenido pero necesita aprobación' },
       { nombre: 'comentador', descripcion: 'Solo puede comentar en posts publicados' }
     ];
-    
+
     for (const rol of rolesDefault) {
       // Usar tipado explícito en la consulta para evitar deducciones inconsistentes de tipos
       await client.query(`
@@ -186,9 +211,9 @@ async function initDatabase() {
         WHERE NOT EXISTS (SELECT 1 FROM roles WHERE nombre = $1);
       `, [rol.nombre, rol.descripcion]);
     }
-    
+
     console.log('✅ Roles por defecto insertados/verificados');
-    
+
     // 2. Insertar estados de publicación por defecto si no existen
     const estadosDefault = [
       { nombre: 'borrador', descripcion: 'Post en edición' },
@@ -197,7 +222,7 @@ async function initDatabase() {
       { nombre: 'rechazado', descripcion: 'Post rechazado por los editores' },
       { nombre: 'archivado', descripcion: 'Post archivado (no visible)' }
     ];
-    
+
     for (const estado of estadosDefault) {
       // Usar tipado explícito en la consulta para evitar deducciones inconsistentes de tipos
       await client.query(`
@@ -206,20 +231,63 @@ async function initDatabase() {
         WHERE NOT EXISTS (SELECT 1 FROM estados_publicacion WHERE nombre = $1);
       `, [estado.nombre, estado.descripcion]);
     }
-    
+
+    const permisosDefault = [
+      { nombre: 'crear_post', descripcion: 'Crear nuevos posts' },
+      { nombre: 'editar_post_propio', descripcion: 'Editar sus propios posts' },
+      { nombre: 'editar_post_cualquiera', descripcion: 'Editar cualquier post' },
+      { nombre: 'publicar_post', descripcion: 'Cambiar estado a publicado' },
+      { nombre: 'rechazar_post', descripcion: 'Cambiar estado a rechazado' },
+      { nombre: 'asignar_roles', descripcion: 'Asignar roles a usuarios' },
+      { nombre: 'comentar', descripcion: 'Añadir comentarios a posts publicados' },
+      { nombre: 'reaccionar', descripcion: 'Añadir reacciones a posts publicados' },
+      { nombre: 'crear_categoria', descripcion: 'Crear nuevas categorías' },
+      { nombre: 'editar_categoria', descripcion: 'Editar las categorías' },
+      { nombre: 'eliminar_categoria', descripcion: 'Elimina la categorías' }
+    ];
+
     console.log('✅ Estados de publicación por defecto insertados/verificados');
-    
+
+    for (const permiso of permisosDefault) {
+      // Usar tipado explícito en la consulta para evitar deducciones inconsistentes de tipos
+      await client.query(`
+        INSERT INTO permisos (nombre, descripcion)
+        SELECT $1::VARCHAR, $2::TEXT
+        WHERE NOT EXISTS (SELECT 1 FROM permisos WHERE nombre = $1);
+      `, [permiso.nombre, permiso.descripcion]);
+    }
+    console.log('✅ Permisos por defecto insertados/verificados');
+
+    // Insertar tipos de reacciones por defecto
+    const tiposReaccionesDefault = [
+      { nombre: 'me gusta', emoji: '👍', descripcion: 'Reacción positiva al contenido' },
+      { nombre: 'me encanta', emoji: '❤️', descripcion: 'Reacción de amor al contenido' },
+      { nombre: 'interesante', emoji: '🤔', descripcion: 'Contenido que hace pensar' },
+      { nombre: 'celebrar', emoji: '🎉', descripcion: 'Contenido que merece celebración' },
+      { nombre: 'informativo', emoji: '📚', descripcion: 'Contenido educativo o informativo' }
+    ];
+
+    for (const tipo of tiposReaccionesDefault) {
+      await client.query(`
+        INSERT INTO tipos_reacciones (nombre, emoji, descripcion)
+        SELECT $1::VARCHAR, $2::VARCHAR, $3::TEXT
+        WHERE NOT EXISTS (SELECT 1 FROM tipos_reacciones WHERE nombre = $1);
+      `, [tipo.nombre, tipo.emoji, tipo.descripcion]);
+    }
+    console.log('✅ Tipos de reacciones por defecto insertados/verificados');
+
+
     await client.query('COMMIT');
     console.log('✅ Inicialización de base de datos completada con éxito');
-    
+
     return { success: true, message: 'Base de datos inicializada correctamente' };
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('❌ Error al inicializar la base de datos:', error);
-    return { 
-      success: false, 
-      message: 'Error al inicializar la base de datos', 
-      error: error.message 
+    return {
+      success: false,
+      message: 'Error al inicializar la base de datos',
+      error: error.message
     };
   } finally {
     client.release();
