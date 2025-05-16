@@ -8,6 +8,7 @@ import TeamSection from '../components/home/TeamSection.astro';
 import PublicationsSection from '../components/home/PublicationsSection.astro';
 import ContactSection from '../components/home/ContactSection.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import ChatWidget from '../components/chatbot/ChatWidget.tsx';
 ---
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
   <BaseHead slot="head" title={SITE_TITLE} description={SITE_DESCRIPTION} />
@@ -17,4 +18,5 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
   <TeamSection />
   <PublicationsSection />
   <ContactSection />
+  <ChatWidget client:load />
 </BaseLayout>
