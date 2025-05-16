@@ -44,9 +44,9 @@
     "slate": "^0.112.0",
     "slate-react": "^0.112.1",
     "svix": "^1.62.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "astro": "^5.7.13"
   },
   "devDependencies": {
-    "astro": "^5.7.13"
   }
 }
