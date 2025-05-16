@@ -1,0 +1,87 @@
+---
+// Componente para mostrar el perfil del usuario con la imagen de avatar y su rol
+import { type User } from '@clerk/backend';
+
+interface Props {
+  user?: User;
+  rol?: string;
+}
+
+const { user, rol = "Administrador" } = Astro.props;
+const userName = user?.firstName || user?.username || "Usuario";
+---
+
+<div class="user-profile">
+  <div class="user-avatar">
+    {user?.imageUrl ? (
+      <img src={user.imageUrl} alt={userName} />
+    ) : (
+      <div class="avatar-placeholder">
+        {userName.charAt(0).toUpperCase()}
+      </div>
+    )}
+  </div>
+  <div class="user-info">
+    <h3 class="user-name">{userName}</h3>
+    <span class="user-role">{rol}</span>
+  </div>
+</div>
+
+<style>
+  .user-profile {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 0.75rem;
+    background-color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    font-size: 1.2rem;
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .user-info {
+    flex: 1;
+  }
+  
+  .user-name {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  .user-role {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+</style> 

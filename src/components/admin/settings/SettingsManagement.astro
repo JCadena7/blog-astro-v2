@@ -1,0 +1,286 @@
+---
+import SettingsManagementReact from './SettingsManagement';
+import { pool } from '../../../db/pool';
+
+interface SiteSettings {
+  id: number;
+  site_title: string;
+  site_description: string;
+  contact_email: string;
+  posts_per_page: number;
+  allow_comments: boolean;
+  social_media: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
+  theme_options: {
+    primary_color?: string;
+    secondary_color?: string;
+    font_family?: string;
+  };
+}
+
+// Inicializar configuración con valores por defecto
+let settings: { rows: SiteSettings[] } = { rows: [] };
+
+try {
+  const client = await pool.connect();
+  try {
+    // Obtener configuración del sitio
+    settings = await client.query(`
+      SELECT * FROM configuracion
+      WHERE id = 1
+    `);
+    
+    // Si no hay configuración, crear una por defecto
+    if (settings.rows.length === 0) {
+      settings.rows = [{
+        id: 1,
+        site_title: 'Mi Blog',
+        site_description: 'Un blog creado con Astro y Tailwind',
+        contact_email: 'contacto@ejemplo.com',
+        posts_per_page: 10,
+        allow_comments: true,
+        social_media: {},
+        theme_options: {
+          primary_color: '#007bff',
+          secondary_color: '#6c757d',
+          font_family: 'Poppins'
+        }
+      }];
+    }
+  } finally {
+    client.release();
+  }
+} catch (error) {
+  console.error('Error al obtener la configuración:', error);
+}
+---
+
+<SettingsManagementReact client:load />
+
+<!-- <style>
+  .settings-management {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 
+      4px 4px 8px var(--neu-shadow-dark),
+      -4px -4px 8px var(--neu-shadow-light);
+  }
+
+  .header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-actions h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .save-message {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+  }
+
+  .save-message.success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+  }
+
+  .save-message.error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+  }
+
+  .settings-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  .tab-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    border-radius: 8px 8px 0 0;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .tab-button:hover {
+    background-color: var(--hover-bg);
+  }
+
+  .tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  .tab-content {
+    display: none;
+    padding: 1rem 0;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="url"],
+  .form-group input[type="number"],
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .checkbox-group {
+    display: flex;
+    align-items: center;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .checkbox-label input {
+    margin-right: 0.5rem;
+  }
+
+  .color-picker-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .color-picker-container input[type="color"] {
+    width: 50px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+  }
+
+  .color-text-input {
+    flex: 1;
+  }
+
+  .comments-info {
+    background-color: var(--hover-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+  }
+
+  .comments-info p {
+    margin-top: 0;
+    font-weight: 500;
+  }
+
+  .comments-info ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+  }
+
+  .comments-info li {
+    margin-bottom: 0.5rem;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .header-actions {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .settings-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .tab-button {
+      white-space: nowrap;
+    }
+
+    .color-picker-container {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .color-text-input {
+      width: 100%;
+    }
+  }
+</style> -->

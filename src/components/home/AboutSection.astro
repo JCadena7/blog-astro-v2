@@ -1,0 +1,71 @@
+---
+const stats = [
+  { value: '10+', label: 'Proyectos de Investigación' },
+  { value: '25+', label: 'Miembros Investigadores' },
+  { value: '15+', label: 'Publicaciones Científicas' },
+  { value: '5+', label: 'Años de Experiencia' }
+];
+---
+
+<section id="about" class="py-20 bg-[var(--secondary-bg)]">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-12" data-aos="fade-up">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-[var(--text-color)]">Sobre Nosotros</h2>
+      <div class="w-20 h-1 bg-primary-500 mx-auto mb-6"></div>
+      <p class="text-lg text-[var(--secondary-text-color)] max-w-3xl mx-auto">
+        El Semillero de Investigación GEAB está dedicado al estudio, desarrollo y aplicación de tecnologías de análisis de datos y Big Data para resolver problemas complejos en diversos sectores.
+      </p>
+    </div>
+    
+    <div class="flex flex-col md:flex-row gap-8 items-center mb-16">
+      <div class="md:w-1/2" data-aos="fade-right">
+        <img 
+          src="https://images.pexels.com/photos/7413915/pexels-photo-7413915.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+          alt="Equipo de investigación colaborando" 
+          class="rounded-2xl shadow-lg w-full"
+        />
+      </div>
+      
+      <div class="md:w-1/2" data-aos="fade-left">
+        <h3 class="text-2xl font-semibold mb-4 text-[var(--text-color)]">Nuestra Misión</h3>
+        <p class="text-[var(--secondary-text-color)] mb-6">
+          Formar investigadores capaces de utilizar técnicas avanzadas de análisis de datos para generar conocimiento científico e innovar en la resolución de problemas en diferentes ámbitos: empresarial, social, académico y gubernamental.
+        </p>
+        
+        <h3 class="text-2xl font-semibold mb-4 text-[var(--text-color)]">Nuestra Visión</h3>
+        <p class="text-[var(--secondary-text-color)] mb-6">
+          Ser un referente en investigación aplicada sobre análisis de datos y Big Data, contribuyendo al desarrollo científico y tecnológico mediante soluciones innovadoras basadas en datos.
+        </p>
+        
+        <div class="flex flex-wrap gap-4">
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-[var(--primary-color)] rounded-full mr-2"></div>
+            <span class="text-[var(--secondary-text-color)]">Excelencia académica</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-[var(--primary-color)] rounded-full mr-2"></div>
+            <span class="text-[var(--secondary-text-color)]">Innovación tecnológica</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-[var(--primary-color)] rounded-full mr-2"></div>
+            <span class="text-[var(--secondary-text-color)]">Colaboración interdisciplinaria</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-2 h-2 bg-[var(--primary-color)] rounded-full mr-2"></div>
+            <span class="text-[var(--secondary-text-color)]">Aplicación práctica</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Stats Section -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6" data-aos="fade-up">
+      {stats.map(stat => (
+        <div class="bg-white p-6 rounded-xl shadow-md text-center hover:shadow-lg transition-shadow">
+          <div class="text-4xl font-bold text-primary-500 mb-2">{stat.value}</div>
+          <div class="text-neutral-600">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

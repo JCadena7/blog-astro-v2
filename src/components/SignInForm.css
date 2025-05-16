@@ -1,0 +1,49 @@
+/* Clerk SignIn custom appearance for dark/light mode */
+:root {
+  --clerk-bg: #fff;
+  --clerk-card-bg: #fff;
+  --clerk-card-text: #181B20;
+  --clerk-btn-bg: #4263eb;
+  --clerk-btn-bg-hover: #2337ff;
+  --clerk-input-bg: #fff;
+  --clerk-input-border: #ced4da;
+}
+[data-theme="dark"] {
+  --clerk-bg: #181B20;
+  --clerk-card-bg: #23262f;
+  --clerk-card-text: #c0caf5;
+  --clerk-btn-bg: #7aa2f7;
+  --clerk-btn-bg-hover: #4263eb;
+  --clerk-input-bg: #23262f;
+  --clerk-input-border: #414868;
+}
+
+.clerk-rootBox {
+  background: var(--clerk-bg) !important;
+}
+.clerk-card {
+  background: var(--clerk-card-bg) !important;
+  color: var(--clerk-card-text) !important;
+}
+
+[data-theme="dark"] .clerk-card, [data-theme="dark"] .clerk-card * {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .clerk-input::placeholder {
+  color: #a3aed6 !important;
+  opacity: 1 !important;
+}
+
+.clerk-formButtonPrimary {
+  background: var(--clerk-btn-bg) !important;
+  color: #fff !important;
+}
+.clerk-formButtonPrimary:hover {
+  background: var(--clerk-btn-bg-hover) !important;
+}
+.clerk-input {
+  background: var(--clerk-input-bg) !important;
+  border-color: var(--clerk-input-border) !important;
+  color: var(--clerk-card-text) !important;
+}

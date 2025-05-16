@@ -1,0 +1,836 @@
+---
+import { pool } from '../../db/pool.js';
+
+interface Stats {
+  totalPosts: number;
+  totalViews: number;
+  pendingApproval: number;
+  activeUsers: number;
+  recentPosts: Array<{
+    titulo: string;
+    autor_nombre: string;
+    estado_nombre: string;
+    created_at: Date;
+  }>;
+  topCategories: Array<{
+    nombre: string;
+    count: number;
+    percentage: number;
+  }>;
+}
+
+// Obtener estadísticas
+const client = await pool.connect();
+let stats: Stats;
+
+try {
+  const [
+    totalPosts,
+    totalUsers,
+    pendingApproval,
+    recentPosts,
+    categoriesData
+  ] = await Promise.all([
+    client.query('SELECT COUNT(*) FROM posts'),
+    client.query('SELECT COUNT(*) FROM usuarios'),
+    client.query("SELECT COUNT(*) FROM posts WHERE estado_id = (SELECT id FROM estados_publicacion WHERE nombre = 'en_revision')"),
+    client.query(`
+      SELECT p.*, u.nombre as autor_nombre, e.nombre as estado_nombre
+      FROM posts p
+      JOIN usuarios u ON p.usuario_id = u.id
+      JOIN estados_publicacion e ON p.estado_id = e.id
+      ORDER BY p.created_at DESC
+      LIMIT 5
+    `),
+    client.query(`
+      SELECT c.nombre, COUNT(pc.post_id) as count
+      FROM categorias c
+      JOIN posts_categorias pc ON c.id = pc.categoria_id
+      GROUP BY c.nombre
+      ORDER BY count DESC
+      LIMIT 4
+    `)
+  ]);
+
+  // Calcular porcentajes para categorías
+  const totalCategoriesCount = categoriesData.rows.reduce((sum: number, cat: { count: string }) => sum + parseInt(cat.count), 0);
+  const topCategories = categoriesData.rows.map((cat: { nombre: string; count: string }) => ({
+    nombre: cat.nombre,
+    count: parseInt(cat.count),
+    percentage: Math.round((parseInt(cat.count) / totalCategoriesCount) * 100)
+  }));
+
+  // Simular datos de vistas (en un sistema real, esto vendría de una tabla de analytics)
+  const totalViews = 24598;
+
+  stats = {
+    totalPosts: parseInt(totalPosts.rows[0].count),
+    totalViews: totalViews,
+    pendingApproval: parseInt(pendingApproval.rows[0].count),
+    activeUsers: parseInt(totalUsers.rows[0].count),
+    recentPosts: recentPosts.rows,
+    topCategories: topCategories
+  };
+} finally {
+  client.release();
+}
+---
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+      </svg>
+    </div>
+    <div class="stat-content">
+      <h3>Total Posts</h3>
+      <p class="stat-number">{stats.totalPosts}</p>
+      <p class="stat-change positive">↑ 12% from last month</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon views-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+    </div>
+    <div class="stat-content">
+      <h3>Total Views</h3>
+      <p class="stat-number">{stats.totalViews.toLocaleString()}</p>
+      <p class="stat-change positive">↑ 24% from last month</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon pending-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+    </div>
+    <div class="stat-content">
+      <h3>Pending Approval</h3>
+      <p class="stat-number">{stats.pendingApproval}</p>
+      <p class="stat-change negative">↓ 2 from yesterday</p>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon users-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+        <circle cx="9" cy="7" r="4"></circle>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+      </svg>
+    </div>
+    <div class="stat-content">
+      <h3>Active Users</h3>
+      <p class="stat-number">{stats.activeUsers}</p>
+      <p class="stat-change positive">↑ 8% from last month</p>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-row">
+  <div class="views-analytics">
+    <div class="analytics-header">
+      <h2>Views Analytics</h2>
+      <div class="time-filter">
+        <button class="time-btn">Week</button>
+        <button class="time-btn active">Month</button>
+        <button class="time-btn">Year</button>
+      </div>
+    </div>
+    <div class="analytics-chart">
+      <svg viewBox="0 0 800 300" class="chart">
+        <!-- Eje Y y líneas de cuadrícula -->
+        <line x1="50" y1="250" x2="750" y2="250" stroke="var(--border-color)" stroke-width="1"></line>
+        
+        <text x="30" y="250" text-anchor="end" class="chart-text">0</text>
+        <line x1="50" y1="200" x2="750" y2="200" stroke="var(--border-color)" stroke-width="1" stroke-dasharray="5,5"></line>
+        <text x="30" y="200" text-anchor="end" class="chart-text">1,000</text>
+        
+        <line x1="50" y1="150" x2="750" y2="150" stroke="var(--border-color)" stroke-width="1" stroke-dasharray="5,5"></line>
+        <text x="30" y="150" text-anchor="end" class="chart-text">2,000</text>
+        
+        <line x1="50" y1="100" x2="750" y2="100" stroke="var(--border-color)" stroke-width="1" stroke-dasharray="5,5"></line>
+        <text x="30" y="100" text-anchor="end" class="chart-text">3,000</text>
+        
+        <line x1="50" y1="50" x2="750" y2="50" stroke="var(--border-color)" stroke-width="1" stroke-dasharray="5,5"></line>
+        <text x="30" y="50" text-anchor="end" class="chart-text">4,000</text>
+        
+        <!-- Eje X (meses) -->
+        <text x="100" y="270" text-anchor="middle" class="chart-text">Jan</text>
+        <text x="200" y="270" text-anchor="middle" class="chart-text">Feb</text>
+        <text x="300" y="270" text-anchor="middle" class="chart-text">Mar</text>
+        <text x="400" y="270" text-anchor="middle" class="chart-text">Apr</text>
+        <text x="500" y="270" text-anchor="middle" class="chart-text">May</text>
+        <text x="600" y="270" text-anchor="middle" class="chart-text">Jun</text>
+        <text x="700" y="270" text-anchor="middle" class="chart-text">Jul</text>
+        
+        <!-- Línea de datos -->
+        <path d="M100,200 C150,150 180,180 200,120 C220,100 250,150 300,170 C350,150 380,120 400,100 C450,80 500,70 600,50 C650,40 680,30 700,20" 
+              fill="none" stroke="var(--primary-color)" stroke-width="3"></path>
+        
+        <!-- Área bajo la curva -->
+        <path d="M100,200 C150,150 180,180 200,120 C220,100 250,150 300,170 C350,150 380,120 400,100 C450,80 500,70 600,50 C650,40 680,30 700,20 L700,250 L100,250 Z" 
+              fill="url(#gradient)" fill-opacity="0.2"></path>
+        
+        <!-- Puntos de datos -->
+        <circle cx="100" cy="200" r="4" fill="var(--primary-color)"></circle>
+        <circle cx="200" cy="120" r="4" fill="var(--primary-color)"></circle>
+        <circle cx="300" cy="170" r="4" fill="var(--primary-color)"></circle>
+        <circle cx="400" cy="100" r="4" fill="var(--primary-color)"></circle>
+        <circle cx="500" cy="70" r="4" fill="var(--primary-color)"></circle>
+        <circle cx="600" cy="50" r="4" fill="var(--primary-color)"></circle>
+        <circle cx="700" cy="20" r="4" fill="var(--primary-color)"></circle>
+        
+        <!-- Definición del gradiente -->
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="var(--primary-color)" stop-opacity="0.5"></stop>
+            <stop offset="100%" stop-color="var(--primary-color)" stop-opacity="0.1"></stop>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  </div>
+  
+  <div class="top-categories">
+    <h2>Top Categories</h2>
+    <div class="categories-list">
+      {stats.topCategories.map(category => (
+        <div class="category-item">
+          <div class="category-info">
+            <span class="category-name">{category.nombre}</span>
+            <span class="category-percentage">{category.percentage}%</span>
+          </div>
+          <div class="category-bar-bg">
+            <div class="category-bar" style={`width: ${category.percentage}%`}></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-row items-stretch">
+  <div class="recent-posts" style="display:flex;flex-direction:column;height:100%">
+    <div class="section-header">
+      <h2>Recent Posts</h2>
+      <a href="/admin/posts" class="view-all">View All</a>
+    </div>
+    <div class="posts-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Título</th>
+            <th>Autor</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          {stats.recentPosts.map(post => (
+          <tr>
+            <td>
+              <div class="post-info">
+                <div class="post-thumbnail"></div>
+                <div>
+                  <div class="post-title">{post.titulo}</div>
+                  <div class="post-excerpt">A comprehensive guide to setting up your blog with modern technologies</div>
+                </div>
+              </div>
+            </td>
+            <td>{post.autor_nombre}</td>
+            <td>
+              <span class={`status-badge status-${post.estado_nombre}`}>
+                {post.estado_nombre === 'publicado' ? 'Published' : 
+                 post.estado_nombre === 'en_revision' ? 'Pending' : 
+                 post.estado_nombre === 'borrador' ? 'Draft' : post.estado_nombre}
+              </span>
+            </td>
+            <td>{new Date(post.created_at).toLocaleDateString()}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  
+</div>
+<div class="recent-activity" style="display:flex;flex-direction:column;height:100%">
+  <div class="section-header">
+    <h2>Recent Activity</h2>
+    <a href="#" class="view-all">View All</a>
+  </div>
+  <div class="activity-list">
+    <div class="activity-item">
+      <div class="activity-icon user-registered">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="8.5" cy="7" r="4"></circle>
+          <line x1="20" y1="8" x2="20" y2="14"></line>
+          <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+      </div>
+      <div class="activity-content">
+        <h4>New user registered</h4>
+        <p>Sarah Johnson joined as an Editor</p>
+        <span class="activity-time">2 hours ago</span>
+      </div>
+    </div>
+    
+    <div class="activity-item">
+      <div class="activity-icon post-approved">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+      <div class="activity-content">
+        <h4>Post approved</h4>
+        <p>"Understanding MDX for Technical Writing" was published</p>
+        <span class="activity-time">5 hours ago</span>
+      </div>
+    </div>
+    
+    <div class="activity-item">
+      <div class="activity-icon new-comment">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </div>
+      <div class="activity-content">
+        <h4>New comment</h4>
+        <p>John Smith commented on "How to Build a Blog with Astro"</p>
+        <span class="activity-time">1 day ago</span>
+      </div>
+    </div>
+    
+    <div class="activity-item">
+      <div class="activity-icon post-updated">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+        </svg>
+      </div>
+      <div class="activity-content">
+        <h4>Post updated</h4>
+        <p>Michael Chen edited "Role-Based Access Control"</p>
+        <span class="activity-time">2 days ago</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Estilos para la cuadrícula de estadísticas */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 
+      4px 4px 8px var(--neu-shadow-dark),
+      -4px -4px 8px var(--neu-shadow-light);
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+  }
+
+  .views-icon {
+    background-color: rgba(111, 66, 193, 0.1);
+    color: #6f42c1;
+  }
+  
+  .pending-icon {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+  }
+  
+  .users-icon {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+  }
+
+  .stat-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .stat-content h3 {
+    font-size: 0.875rem;
+    color: var(--secondary-color);
+    margin: 0;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0.25rem 0 0 0;
+  }
+  
+  .stat-change {
+    font-size: 0.75rem;
+    margin: 0.25rem 0 0 0;
+  }
+  
+  .positive {
+    color: #28a745;
+  }
+  
+  .negative {
+    color: #dc3545;
+  }
+  
+  /* Estilos para el dashboard row */
+  .dashboard-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Estilos para el gráfico de análisis */
+  .views-analytics, .recent-posts, .top-categories, .recent-activity {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 
+      4px 4px 8px var(--neu-shadow-dark),
+      -4px -4px 8px var(--neu-shadow-light);
+  }
+  
+  .analytics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .analytics-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  
+  .time-filter {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .time-btn {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    border: none;
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 2px 2px 4px var(--neu-shadow-dark), -2px -2px 4px var(--neu-shadow-light);
+  }
+  
+  .time-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.2), inset -2px -2px 5px rgba(255, 255, 255, 0.1);
+    transform: translateY(1px);
+  }
+  
+  .analytics-chart {
+    height: 300px;
+    width: 100%;
+  }
+  
+  .chart {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .chart-text {
+    font-size: 10px;
+    fill: var(--secondary-text-color);
+  }
+  
+  /* Estilos para las categorías principales */
+  .top-categories h2 {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.25rem;
+  }
+  
+  .categories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .category-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .category-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .category-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .category-percentage {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  
+  .category-bar-bg {
+    height: 8px;
+    background-color: var(--secondary-bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .category-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    border-radius: 4px;
+  }
+  
+  /* Estilos para la sección de posts recientes */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .section-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+  
+  .view-all {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  
+  .posts-table {
+    overflow-x: auto;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  th {
+    font-weight: 500;
+    color: var(--secondary-color);
+  }
+  
+  @media (max-width: 768px) {
+    th, td {
+      padding: 0.625rem;
+    }
+    
+    th:nth-child(2), 
+    td:nth-child(2) {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    th:nth-child(4), 
+    td:nth-child(4) {
+      display: none;
+    }
+    
+    th, td {
+      padding: 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+  
+  .post-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .post-thumbnail {
+    width: 40px;
+    height: 40px;
+    background-color: var(--secondary-bg);
+    border-radius: 6px;
+  }
+  
+  .post-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+  }
+  
+  .post-excerpt {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+  }
+  
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .status-borrador, .status-Draft {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+  }
+  
+  .status-en_revision, .status-Pending {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+  }
+  
+  .status-publicado, .status-Published {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+  }
+  
+  .status-rechazado {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+  }
+  
+  .status-archivado {
+    background-color: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
+  }
+  
+  /* Estilos para la actividad reciente */
+  .activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .activity-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .activity-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .user-registered {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+  }
+  
+  .post-approved {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+  }
+  
+  .new-comment {
+    background-color: rgba(111, 66, 193, 0.1);
+    color: #6f42c1;
+  }
+  
+  .post-updated {
+    background-color: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+  }
+  
+  .activity-content h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+  
+  .activity-content p {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    color: var(--secondary-text-color);
+  }
+  
+  .activity-time {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+  }
+  
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+  }
+
+  @media (max-width: 992px) {
+    .dashboard-row {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .analytics-chart {
+      height: 250px;
+    }
+
+    .time-filter {
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .analytics-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .time-filter {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .posts-table table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    .post-info {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .post-thumbnail {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .stat-card {
+      padding: 1rem;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .stat-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .stat-number {
+      font-size: 1.25rem;
+    }
+
+    .analytics-chart {
+      height: 200px;
+    }
+
+    .chart-text {
+      font-size: 8px;
+    }
+    
+    .activity-item {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background-color: var(--secondary-bg);
+    }
+    
+    .activity-content {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+    
+    .category-name, .category-percentage {
+      font-size: 0.75rem;
+    }
+  }
+  
+  /* Mejoras de accesibilidad */
+  @media (prefers-reduced-motion: reduce) {
+    .time-btn, .stat-card, .category-bar {
+      transition: none;
+    }
+  }
+  
+  /* Mejoras para pantallas muy pequeñas */
+  @media (max-width: 360px) {
+    .stats-grid {
+      gap: 0.75rem;
+    }
+    
+    .stat-card {
+      padding: 0.75rem;
+    }
+    
+    .dashboard-row {
+      gap: 1rem;
+    }
+    
+    .views-analytics, .recent-posts, .top-categories, .recent-activity {
+      padding: 1rem;
+    }
+  }

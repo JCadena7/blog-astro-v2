@@ -1,0 +1,53 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import { SITE_TITLE } from '../../consts';
+import { SignIn } from '@clerk/astro/components';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <BaseHead title={`Iniciar Sesión - ${SITE_TITLE}`} description="Panel de administración" />
+    <style>
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f5f5f5;
+      }
+      .login-container {
+        width: 100%;
+        max-width: 400px;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 1.5rem;
+        color: rgb(var(--accent));
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h1>Iniciar Sesión</h1>
+      
+      <SignIn signUpUrl="/admin/signup" afterSignInUrl="/admin" />
+      
+      <a href="/" class="back-link">Volver al sitio</a>
+    </div>
+  </body>
+</html>
+
+---
+return Astro.redirect('/sign-in');
+--- 

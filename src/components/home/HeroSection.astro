@@ -1,0 +1,91 @@
+---
+---
+
+<section id="hero" class="relative h-screen flex items-center">
+  <!-- Background with particles effect -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div id="particles-js" class="absolute inset-0"></div>
+    <div class="absolute inset-0 bg-gradient-to-br from-white via-white/80 to-primary-50/80 dark:from-[var(--secondary-bg)] dark:via-[var(--secondary-bg)]/80 dark:to-[var(--secondary-bg)]/80"></div>
+  </div>
+  
+  <div class="container mx-auto px-4 relative z-10">
+    <div class="flex flex-col md:flex-row items-center justify-between">
+      <div class="md:w-1/2 mb-8 md:mb-0 text-center md:text-left" data-aos="fade-right">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-[var(--text-color)] dark:text-[var(--text-color)]">
+          <span class="block">Semillero de Investigación</span>
+          <span class="text-primary-500">Analítica de Datos y Big Data</span>
+        </h1>
+        <p class="text-lg md:text-xl text-[var(--secondary-text-color)] dark:text-[var(--secondary-text-color)] mb-6">
+          Explorando la ciencia de los datos para resolver problemas complejos e impulsar la innovación basada en evidencia.
+        </p>
+        <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+          <a 
+            href="#about" 
+            class="px-6 py-3 rounded-full bg-[var(--primary-color)] text-[var(--card-bg)] dark:text-[var(--card-bg)] font-medium hover:bg-[var(--accent-color)] transition-colors shadow-md hover:shadow-lg"
+          >
+            Conócenos
+          </a>
+          <a 
+            href="#research" 
+            class="px-6 py-3 rounded-full bg-[var(--card-bg)] dark:bg-[var(--secondary-bg)] text-[var(--primary-color)] dark:text-[var(--primary-color)] font-medium border border-[var(--primary-color)] dark:border-[var(--secondary-text-color)] hover:bg-[var(--hover-bg)] transition-colors"
+          >
+            Nuestras Investigaciones
+          </a>
+        </div>
+      </div>
+      
+      <div class="md:w-1/2 flex justify-center" data-aos="fade-left">
+        <div class="relative">
+          <img 
+            src="https://images.pexels.com/photos/669615/pexels-photo-669615.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" 
+            alt="Análisis de datos visualización" 
+            class="w-full max-w-md rounded-2xl shadow-lg"
+          />
+          <div class="absolute -bottom-6 -right-6 bg-white p-3 rounded-xl shadow-lg animate-pulse-slow hidden md:block">
+            <img src="/logo.png" alt="GEAB Logo" class="h-16" />
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+      <a href="#about" aria-label="Scroll to About section">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Load particles.js from CDN
+  document.addEventListener('DOMContentLoaded', function() {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js';
+    script.onload = function() {
+      // @ts-ignore
+      if (window.particlesJS) {
+        // @ts-ignore
+        window.particlesJS('particles-js', {
+          particles: {
+            number: { value: 80, density: { enable: true, value_area: 800 } },
+            color: { value: "#37B6C1" },
+            shape: { type: "circle", stroke: { width: 0, color: "#000000" } },
+            opacity: { value: 0.3, random: false, anim: { enable: false } },
+            size: { value: 3, random: true, anim: { enable: false } },
+            line_linked: { enable: true, distance: 150, color: "#37B6C1", opacity: 0.2, width: 1 },
+            move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out", bounce: false, attract: { enable: false, rotateX: 600, rotateY: 1200 } }
+          },
+          interactivity: {
+            detect_on: "canvas",
+            events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
+            modes: { grab: { distance: 140, line_linked: { opacity: 1 } }, push: { particles_nb: 4 } }
+          },
+          retina_detect: true
+        });
+      }
+    };
+    document.body.appendChild(script);
+  });
+</script>

@@ -1,0 +1,56 @@
+---
+import UserManagementReact from './UserManagement';
+import { pool } from '../../../db/pool';
+
+import ClerkProviderWrapper from '../../ClerkProviderWrapper.jsx';
+// @ts-ignore — `permissions` y `user` inyectados por el middleware
+const { permissions, user } = (Astro as any).locals as any;
+
+// interface User {
+//   id: number;
+//   nombre: string;
+//   email: string;
+//   rol_nombre: string;
+//   created_at: Date;
+// }
+
+// interface Role {
+//   id: number;
+//   nombre: string;
+// }
+
+// // Inicializar users y roles con valores por defecto
+// let users: { rows: User[] } = { rows: [] };
+// let roles: { rows: Role[] } = { rows: [] };
+
+// try {
+//   const client = await pool.connect();
+//   try {
+//     // Obtener usuarios con sus roles
+//     users = await client.query(`
+//       SELECT u.*, r.nombre as rol_nombre
+//       FROM usuarios u
+//       LEFT JOIN roles r ON u.rol_id = r.id
+//       ORDER BY u.created_at DESC
+//     `);
+
+//     // Obtener roles
+//     roles = await client.query(`
+//       SELECT * FROM roles
+//       ORDER BY nombre
+//     `);
+//   } finally {
+//     client.release();
+//   }
+// } catch (error) {
+//   console.error('Error al obtener los datos:', error);
+// }
+---
+
+<ClerkProviderWrapper>
+  <UserManagementReact
+    client:load 
+    permissions={permissions}
+    user={user}
+  />
+</ClerkProviderWrapper>

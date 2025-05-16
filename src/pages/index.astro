@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BaseHead from '../components/BaseHead.astro';
+import HeroSection from '../components/home/HeroSection.astro';
+import AboutSection from '../components/home/AboutSection.astro';
+import ResearchSection from '../components/home/ResearchSection.astro';
+import TeamSection from '../components/home/TeamSection.astro';
+import PublicationsSection from '../components/home/PublicationsSection.astro';
+import ContactSection from '../components/home/ContactSection.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+---
+<BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
+  <BaseHead slot="head" title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  <HeroSection />
+  <AboutSection />
+  <ResearchSection />
+  <TeamSection />
+  <PublicationsSection />
+  <ContactSection />
+</BaseLayout>

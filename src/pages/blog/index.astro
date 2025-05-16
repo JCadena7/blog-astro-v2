@@ -1,0 +1,98 @@
+---
+import Layout from '../../layouts/BaseLayout.astro';
+import ReadMore from '../../components/ReadMore.jsx';
+
+// Fetch posts from API
+interface PostAPI {
+  id: number;
+  slug: string;
+  titulo: string;
+  extracto: string;
+  imagen_destacada: string;
+  autor_nombre: string;
+  estado_nombre: string;
+  fecha_publicacion: string;
+  categorias: string[];
+}
+
+// Build API endpoint based on site URL
+const apiUrl = new URL('/api/posts', Astro.site);
+const res = await fetch(apiUrl);
+if (!res.ok) throw new Error('Failed to fetch posts');
+const { posts: apiPosts } = await res.json() as { posts: PostAPI[] };
+const posts = apiPosts
+  .filter(p => p.estado_nombre.toLowerCase() === 'publicado')
+  .sort((a, b) => new Date(b.fecha_publicacion).getTime() - new Date(a.fecha_publicacion).getTime())
+  .map(p => ({
+    id: p.slug,
+    data: {
+      category: p.categorias.length ? p.categorias[0] : '',
+      pubDate: new Date(p.fecha_publicacion),
+      title: p.titulo,
+      excerpt: p.extracto,
+      author: p.autor_nombre,
+      heroImage: p.imagen_destacada
+    }
+  }));
+
+---
+
+<Layout title="Blog - GEAB">
+  <div class="bg-neutral-50 min-h-screen pt-28 pb-16">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-16" data-aos="fade-up">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 text-neutral-800">Blog GEAB</h1>
+        <div class="w-20 h-1 bg-primary-500 mx-auto mb-6"></div>
+        <p class="text-lg text-neutral-600 max-w-3xl mx-auto">
+          Explora nuestros artículos sobre análisis de datos, machine learning, y las últimas tendencias en tecnología.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {posts.map((post) => (
+          <article
+            class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow"
+            data-aos="fade-up"
+          >
+            <a href={`/blog/${post.id}`} class="block">
+              <img
+                src={post.data.heroImage}
+                alt={post.data.title}
+                class="w-full h-48 object-cover"
+              />
+              <div class="p-6">
+                <div class="flex items-center mb-4">
+                  <span class="text-sm font-medium text-primary-500 bg-primary-50 px-3 py-1 rounded-full">
+                    {post.data.category}
+                  </span>
+                  <span class="text-sm text-neutral-500 ml-4">
+                    {new Date(post.data.pubDate).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </span>
+                </div>
+                <h2 class="text-xl font-semibold mb-2 text-neutral-800 hover:text-primary-600 transition-colors">
+                  {post.data.title}
+                </h2>
+                <ReadMore client:load text={post.data.excerpt} />
+                <div class="flex items-center">
+                  <span class="text-sm font-medium text-neutral-700">
+                    Por {post.data.author}
+                  </span>
+                </div>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-12 flex justify-center" data-aos="fade-up">
+        <button class="px-6 py-3 bg-primary-500 text-white rounded-full hover:bg-primary-600 transition-colors shadow-md hover:shadow-lg">
+          Cargar más artículos
+        </button>
+      </div>
+    </div>
+  </div>
+</Layout>

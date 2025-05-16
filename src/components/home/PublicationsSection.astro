@@ -1,0 +1,86 @@
+---
+const publications = [
+  {
+    title: 'Aplicación de algoritmos de Machine Learning para la predicción de deserción estudiantil',
+    authors: 'Martínez A., Ruiz C., Gómez E.',
+    journal: 'Revista Internacional de Educación y Tecnología',
+    year: '2024',
+    link: '#'
+  },
+  {
+    title: 'Análisis de sentimientos en Twitter para evaluar la percepción pública sobre políticas ambientales',
+    authors: 'López J., Martínez A., García S.',
+    journal: 'Journal of Data Science and Applications',
+    year: '2023',
+    link: '#'
+  },
+  {
+    title: 'Modelo predictivo para la optimización de recursos hospitalarios basado en series temporales',
+    authors: 'Gómez E., Pérez M., Ruiz C.',
+    journal: 'Healthcare Data Analytics Review',
+    year: '2023',
+    link: '#'
+  },
+  {
+    title: 'Sistema de recomendación híbrido para plataformas de e-learning',
+    authors: 'Ruiz C., López J., Martínez A.',
+    journal: 'International Journal of Educational Technology',
+    year: '2022',
+    link: '#'
+  }
+];
+---
+
+<section id="publications" class="py-20">
+  <div class="container mx-auto px-4">
+    <div class="text-center mb-16" data-aos="fade-up">
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-800">Publicaciones</h2>
+      <div class="w-20 h-1 bg-primary-500 mx-auto mb-6"></div>
+      <p class="text-lg text-neutral-600 max-w-3xl mx-auto">
+        Nuestras investigaciones se publican en revistas científicas de alto impacto en los campos de ciencia de datos, inteligencia artificial y analítica.
+      </p>
+    </div>
+    
+    <div class="space-y-6 mb-12">
+      {publications.map((pub, index) => (
+        <div
+          class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-neutral-100 group"
+          data-aos="fade-up"
+          data-aos-delay={index * 100}
+        >
+          <div class="flex flex-col md:flex-row md:items-center justify-between">
+            <div>
+              <h3 class="text-xl font-semibold mb-2 text-neutral-800 group-hover:text-primary-500 transition-colors">
+                <a href={pub.link}>{pub.title}</a>
+              </h3>
+              <p class="text-neutral-600 mb-2">{pub.authors}</p>
+              <p class="text-neutral-500 text-sm">
+                <span class="font-medium">{pub.journal}</span> • {pub.year}
+              </p>
+            </div>
+            <div class="mt-4 md:mt-0">
+              <a
+                href={pub.link}
+                class="inline-flex items-center text-primary-500 hover:text-primary-600 font-medium"
+              >
+                Ver publicación
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+    
+    <div class="text-center" data-aos="fade-up">
+      <a
+        href="#"
+        class="inline-block px-6 py-3 rounded-full bg-white text-primary-500 font-medium border border-primary-500 hover:bg-primary-50 transition-colors"
+      >
+        Ver todas las publicaciones
+      </a>
+    </div>
+  </div>
+</section>

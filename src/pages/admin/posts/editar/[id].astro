@@ -1,0 +1,275 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import MdxEditorWrapper from '../../../../components/MdxEditorWrapper.jsx';
+import { pool } from '../../../../db/pool';
+
+interface Categoria {
+  id: number;
+  nombre: string;
+}
+
+interface Post {
+  id: number;
+  titulo: string;
+  extracto: string;
+  contenido: string;
+  imagen_destacada: string | null;
+  categoria_ids: number[];
+  palabras_clave: string[];
+}
+
+const { id } = Astro.params;
+
+// Obtener el post y sus categorías
+const result = await pool.query(`
+  SELECT 
+    p.*,
+    array_agg(DISTINCT c.id) as categoria_ids,
+    array_agg(DISTINCT c.nombre) as categoria_nombres
+  FROM posts p
+  LEFT JOIN posts_categorias pc ON p.id = pc.post_id
+  LEFT JOIN categorias c ON pc.categoria_id = c.id
+  WHERE p.id = $1
+  GROUP BY p.id
+`, [id]);
+
+if (result.rows.length === 0) {
+  return Astro.redirect('/admin');
+}
+
+const post = result.rows[0] as Post;
+
+// Obtener todas las categorías para el selector
+const categoriasResult = await pool.query('SELECT id, nombre FROM categorias ORDER BY nombre');
+const categorias = categoriasResult.rows as Categoria[];
+---
+
+<AdminLayout title={`Editar: ${post.titulo}`}>
+  <main class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold mb-2">Editar Post</h1>
+        <p class="text-gray-600 dark:text-gray-400">
+          Utiliza el editor visual para modificar el contenido con componentes de React y sintaxis de Markdown.
+        </p>
+      </div>
+
+      <form id="edit-form" class="space-y-6">
+        <input type="hidden" name="id" value={post.id}>
+        
+        <div class="grid gap-6 md:grid-cols-2">
+          <div class="form-group">
+            <label for="title" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Título</label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              value={post.titulo}
+              class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              required
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="description" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Descripción</label>
+            <input 
+              type="text" 
+              id="description" 
+              name="description" 
+              value={post.extracto}
+              class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="heroImage" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">URL de Imagen Destacada</label>
+          <input 
+            type="url" 
+            id="heroImage" 
+            name="heroImage" 
+            value={post.imagen_destacada || ''}
+            class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+            placeholder="https://ejemplo.com/imagen.jpg"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="categorias" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Categorías</label>
+          <select 
+            id="categorias" 
+            name="categorias[]" 
+            multiple
+            class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+          >
+            {categorias.map(cat => (
+              <option 
+                value={cat.id} 
+                selected={post.categoria_ids?.includes(cat.id)}
+              >
+                {cat.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="palabras_clave" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Palabras Clave</label>
+          <input 
+            type="text" 
+            id="palabras_clave" 
+            name="palabras_clave" 
+            value={post.palabras_clave?.join(', ')}
+            class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+            placeholder="Separa las palabras clave con comas"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="content" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Contenido</label>
+          <div class="border border-neutral-300 dark:border-neutral-700 rounded-lg overflow-hidden">
+            <MdxEditorWrapper 
+              client:load
+              id="edit-post-editor" 
+              initialContent={post.contenido}
+            />
+          </div>
+        </div>
+
+        <div class="flex gap-4 justify-end mt-8">
+          <a 
+            href="/admin" 
+            class="btn btn-secondary bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 font-bold rounded-lg px-6 py-3 transition"
+          >
+            Cancelar
+          </a>
+          <button
+            type="button"
+            id="preview-btn"
+            class="btn btn-primary bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-lg px-6 py-3 transition"
+          >
+            Vista Previa
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary bg-violet-500 hover:bg-violet-600 text-white font-bold rounded-lg px-6 py-3 transition"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+
+      <div id="preview-container" class="mt-8 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Vista Previa</h2>
+            <button
+              type="button"
+              id="close-preview"
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Cerrar
+            </button>
+          </div>
+          <div id="preview-content" class="prose dark:prose-invert max-w-none"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</AdminLayout>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('edit-form') as HTMLFormElement;
+    const previewBtn = document.getElementById('preview-btn');
+    const closePreviewBtn = document.getElementById('close-preview');
+    const previewContainer = document.getElementById('preview-container');
+    const previewContent = document.getElementById('preview-content');
+    const palabrasClaveInput = document.getElementById('palabras_clave') as HTMLInputElement;
+    
+    // Manejar vista previa
+    if (previewBtn && previewContainer && previewContent) {
+      previewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const content = window.getEditorContent('edit-post-editor');
+        const titleInput = document.getElementById('title') as HTMLInputElement;
+        const title = titleInput?.value || '';
+        
+        previewContent.innerHTML = `
+          <h1>${title || 'Sin título'}</h1>
+          <div class="prose dark:prose-invert">
+            ${content || 'Sin contenido'}
+          </div>
+        `;
+        previewContainer.classList.remove('hidden');
+      });
+    }
+    
+    if (closePreviewBtn && previewContainer) {
+      closePreviewBtn.addEventListener('click', () => {
+        previewContainer.classList.add('hidden');
+      });
+    }
+    
+    // Manejar envío del formulario
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        
+        // Obtener contenido del editor
+        const content = window.getEditorContent('edit-post-editor');
+        formData.set('content', content);
+        
+        // Procesar palabras clave
+        const palabrasClaveStr = palabrasClaveInput.value;
+        const palabrasClave = palabrasClaveStr
+          .split(',')
+          .map(palabra => palabra.trim())
+          .filter(palabra => palabra.length > 0);
+        
+        // Eliminar el campo anterior y agregar cada palabra clave por separado
+        formData.delete('palabras_clave');
+        palabrasClave.forEach(palabra => {
+          formData.append('palabras_clave[]', palabra);
+        });
+        
+        try {
+          const response = await fetch('/api/posts/update', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Error al actualizar el post');
+          }
+
+          window.location.href = '/admin';
+        } catch (error: unknown) {
+          console.error('Error:', error);
+          if (error instanceof Error) {
+            alert(error.message);
+          } else {
+            alert('Error al actualizar el post. Por favor, intenta de nuevo.');
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<style>
+  .form-group {
+    @apply space-y-1;
+  }
+  
+  select[multiple] {
+    @apply h-32;
+  }
+  
+  .prose {
+    @apply max-w-none;
+  }
+</style> 

@@ -1,0 +1,37 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import { SITE_TITLE } from '../../consts';
+import { SignUp } from '@clerk/astro/components';
+---
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <BaseHead title={`Registro - ${SITE_TITLE}`} description="Regístrate para acceder al panel de administración" />
+    <style>
+        .signup-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            padding: 2rem;
+        }
+        .back-link {
+            margin-top: 2rem;
+            color: rgb(var(--accent));
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-container">
+        <h1>Registro de Administrador</h1>
+        <SignUp signInUrl="/admin/login" />
+        <a href="/" class="back-link">Volver a la página principal</a>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,139 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import initDatabase from '../../db/initDB.js';
+
+// Verificar si el usuario está autenticado
+const auth = Astro.locals.auth;
+const authData = typeof auth === 'function' ? auth() : auth;
+const isAuthenticated = !!authData?.userId;
+
+// Variables para almacenar el resultado
+let initResult = null;
+let errorMessage = null;
+let success = false;
+
+// Si hay un acceso POST, intentar inicializar la base de datos
+if (Astro.request.method === 'POST') {
+  try {
+    // Solo permitir inicialización si el usuario está autenticado
+    if (isAuthenticated) {
+      initResult = await initDatabase();
+      success = initResult.success;
+      
+      if (!success) {
+        errorMessage = initResult.error || 'Error desconocido al inicializar la base de datos';
+      }
+    } else {
+      errorMessage = 'Debes iniciar sesión para ejecutar esta acción';
+    }
+  } catch (error) {
+    console.error('Error al inicializar la base de datos:', error);
+    errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    success = false;
+  }
+}
+---
+
+<AdminLayout title="Inicializar Base de Datos">
+  <div class="p-4 max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Inicializar Base de Datos</h1>
+    
+    <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 rounded-md shadow-md">
+      <div class="flex">
+        <svg class="h-6 w-6 text-yellow-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div>
+          <p class="font-bold">Advertencia</p>
+          <p class="text-sm">
+            Esta herramienta inicializará o reinicializará las tablas de la base de datos. 
+            Se crearán las tablas si no existen, y se agregarán datos iniciales como roles y estados.
+          </p>
+          <p class="text-sm mt-2 font-semibold">
+            Esta operación es segura para una base de datos nueva, pero podría afectar datos existentes.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    {success && (
+      <div class="bg-green-100 border-l-4 border-green-500 p-4 mb-6 rounded-md shadow-md">
+        <div class="flex">
+          <svg class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <div>
+            <p class="font-bold">¡Éxito!</p>
+            <p class="text-sm">La base de datos ha sido inicializada correctamente.</p>
+            <a href="/admin" class="inline-block mt-3 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-sm">
+              Volver al panel de administración
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {errorMessage && (
+      <div class="bg-red-100 border-l-4 border-red-500 p-4 mb-6 rounded-md shadow-md">
+        <div class="flex">
+          <svg class="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p class="font-bold">Error</p>
+            <p class="text-sm">{errorMessage}</p>
+          </div>
+        </div>
+      </div>
+    )}
+    
+    {!success && !errorMessage && (
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4">Configuración de la base de datos</h2>
+        <p class="mb-4">
+          Esta herramienta creará las siguientes tablas en tu base de datos:
+        </p>
+        
+        <ul class="list-disc pl-5 mb-4 space-y-1">
+          <li>Roles (administrador, editor, autor, comentador)</li>
+          <li>Usuarios</li>
+          <li>Estados de publicación</li>
+          <li>Categorías</li>
+          <li>Posts</li>
+          <li>Comentarios</li>
+          <li>Relaciones entre posts y categorías</li>
+          <li>Revisiones de posts</li>
+        </ul>
+        
+        <p class="mb-6">
+          Se utilizará la cadena de conexión especificada en tu archivo .env:
+          <code class="block bg-gray-100 p-2 rounded mt-2 text-sm">
+            {process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:]*@/, ':****@') : 'No configurado'}
+          </code>
+        </p>
+        
+        <form method="POST" class="mt-6">
+          <button 
+            type="submit"
+            class="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline"
+            disabled={!isAuthenticated}
+          >
+            Inicializar base de datos
+          </button>
+          
+          {!isAuthenticated && (
+            <p class="text-red-500 text-xs italic mt-2">
+              Debes iniciar sesión para realizar esta acción.
+            </p>
+          )}
+        </form>
+      </div>
+    )}
+    
+    <div class="mt-6">
+      <a href="/admin" class="text-blue-500 hover:underline">
+        &larr; Volver al panel de administración
+      </a>
+    </div>
+  </div>
+</AdminLayout> 

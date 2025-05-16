@@ -1,0 +1,104 @@
+.themeSelector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.themeToggle {
+  background: var(--theme-toggle-bg, rgba(0, 0, 0, 0.1));
+  border: none;
+  border-radius: 1.25rem;
+  padding: 0.25rem;
+  width: 3rem;
+  height: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.icons {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0.125rem;
+}
+
+.sunIcon,
+.moonIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--theme-toggle-icon, #666);
+  transition: all 0.2s ease;
+  opacity: 0.5;
+}
+
+/* Estado activo para tema claro */
+:global([data-theme="light"]) .themeToggle {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .sunIcon {
+  color: #f59e0b;
+  opacity: 1;
+}
+
+:global([data-theme="light"]) .moonIcon {
+  color: #64748b;
+  opacity: 0.3;
+}
+
+/* Estado activo para tema oscuro */
+:global([data-theme="dark"]) .themeToggle {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:global([data-theme="dark"]) .sunIcon {
+  color: #64748b;
+  opacity: 0.3;
+}
+
+:global([data-theme="dark"]) .moonIcon {
+  color: #f59e0b;
+  opacity: 1;
+}
+
+/* Indicador del tema activo */
+.themeToggle::after {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+:global([data-theme="dark"]) .themeToggle::after {
+  transform: translateX(1.5rem);
+  background-color: #1a1a1a;
+}
+
+/* Hover states */
+.themeToggle:hover {
+  background: var(--theme-toggle-hover-bg, rgba(0, 0, 0, 0.15));
+}
+
+:global([data-theme="dark"]) .themeToggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Focus states */
+.themeToggle:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+} 

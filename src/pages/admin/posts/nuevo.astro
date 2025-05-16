@@ -1,0 +1,247 @@
+---
+import MdxEditorWrapper from '../../../components/MdxEditorWrapper.jsx';
+import PreviewButton from '../../../components/PreviewButton.jsx';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+---
+
+<AdminLayout title="Crear Nuevo Post" description="Crea un nuevo post para el blog">
+  <style>
+    main {
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .form-header {
+      margin-bottom: 2rem;
+    }
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .mdx-info {
+      margin-top: 0.5rem;
+    }
+    .preview {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+    }
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .editor-container {
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    @media (prefers-color-scheme: dark) {
+      .preview {
+        border-color: #374151;
+      }
+      .editor-container {
+        border-color: #374151;
+      }
+    }
+  </style>
+  <main>
+    <div class="form-header">
+      <h1>Crear Nuevo Post</h1>
+      <p>Utiliza el editor visual para crear contenido con componentes de React y sintaxis de Markdown.</p>
+    </div>
+    
+    <form id="post-form" action="/api/create-post" method="POST">
+      <div class="form-group">
+        <label for="title" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Título</label>
+        <input type="text" id="title" name="title" required class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
+      </div>
+      
+      <div class="form-group">
+        <label for="description" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Descripción</label>
+        <input type="text" id="description" name="description" required class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
+      </div>
+      
+      <div class="form-group">
+        <label for="heroImage" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">URL de Imagen Destacada</label>
+        <input type="url" id="heroImage" name="heroImage" placeholder="https://ejemplo.com/imagen.jpg" class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-900 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary-500 transition" />
+      </div>
+      
+      <div class="form-group">
+        <label class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Categorías</label>
+        <div id="categorias-chips" class="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 bg-neutral-100 dark:bg-neutral-800 flex flex-wrap gap-2 mb-2 min-h-[56px] overflow-x-auto sm:overflow-x-visible max-w-full"></div>
+        <div class="border border-neutral-300 dark:border-neutral-700 rounded-xl p-4 bg-neutral-100 dark:bg-neutral-800 min-h-[40px] overflow-x-auto sm:overflow-x-visible max-w-full">
+          <span class="text-neutral-500 dark:text-neutral-400 mr-2">Seleccionados:</span>
+          <span id="categorias-lista"><span class="text-neutral-400 dark:text-neutral-500">Ninguno</span></span>
+        </div>
+        <div id="categorias-inputs"></div>
+      </div>
+      
+      <div class="form-group">
+        <label for="content" class="block text-sm font-medium mb-2 text-neutral-800 dark:text-neutral-100">Contenido</label>
+        <MdxEditorWrapper 
+          client:load
+          id="new-post-editor" 
+          initialContent=""
+        />
+        <div class="mdx-info text-neutral-600 dark:text-neutral-300">
+          <p>Utiliza las herramientas de la barra superior para formatear tu contenido.</p>
+        </div>
+      </div>
+      
+      <div class="buttons flex gap-4 mt-8">
+        <button type="submit" class="btn btn-primary bg-primary-500 hover:bg-primary-600 text-white font-bold rounded-lg px-6 py-3 transition">Publicar Post</button>
+        <a href="/admin" class="btn btn-secondary bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-100 font-bold rounded-lg px-6 py-3 transition">Cancelar</a>
+        <PreviewButton client:load editorId="new-post-editor" />
+      </div>
+    </form>
+    
+    <!-- El componente PreviewButton maneja la vista previa -->
+  </main>
+</AdminLayout>
+<script>
+  interface Categoria {
+    id: string;
+    nombre: string;
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    // Chips de categorías
+    const chipsContainer = document.getElementById('categorias-chips');
+    const inputsContainer = document.getElementById('categorias-inputs');
+    const listaSpan = document.getElementById('categorias-lista');
+    let categoriasData: Categoria[] = [];
+    let seleccionadas: string[] = [];
+
+    function renderChips() {
+      if (!chipsContainer) return;
+      chipsContainer.innerHTML = '';
+      categoriasData.forEach(cat => {
+        const selected = seleccionadas.includes(String(cat.id));
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `px-3 py-1 rounded-full border transition whitespace-nowrap font-medium text-sm mr-1 mb-2 focus:outline-none ${selected ? 'bg-blue-600 text-white border-blue-600' : 'bg-[#181B20] text-gray-300 border-[#23262C] hover:bg-[#23263A]'}`;
+        btn.textContent = cat.nombre;
+        btn.onclick = () => {
+          const idx = seleccionadas.indexOf(String(cat.id));
+          if (idx >= 0) {
+            seleccionadas.splice(idx, 1);
+          } else {
+            seleccionadas.push(String(cat.id));
+          }
+          renderChips();
+          syncSeleccionadas();
+        };
+        chipsContainer.appendChild(btn);
+      });
+    }
+    function syncSeleccionadas() {
+      if (inputsContainer) {
+        inputsContainer.innerHTML = '';
+        seleccionadas.forEach(id => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'categorias[]';
+          input.value = id;
+          inputsContainer.appendChild(input);
+        });
+      }
+      if (listaSpan) {
+        listaSpan.innerHTML = '';
+        if (seleccionadas.length === 0) {
+          const none = document.createElement('span');
+          none.className = 'text-gray-500';
+          none.textContent = 'Ninguno';
+          listaSpan.appendChild(none);
+        } else {
+          categoriasData.filter(cat => seleccionadas.includes(String(cat.id))).forEach(cat => {
+            const chip = document.createElement('span');
+            chip.className = 'inline-flex items-center bg-blue-700 text-white px-2 py-1 rounded-full mr-2 mb-1 whitespace-nowrap';
+            chip.textContent = cat.nombre;
+            // Botón para quitar
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ml-1 text-xs font-bold';
+            btn.setAttribute('aria-label', `Quitar ${cat.nombre}`);
+            btn.textContent = '×';
+            btn.onclick = () => {
+              const idx = seleccionadas.indexOf(String(cat.id));
+              if (idx >= 0) {
+                seleccionadas.splice(idx, 1);
+                renderChips();
+                syncSeleccionadas();
+              }
+            };
+            chip.appendChild(btn);
+            listaSpan.appendChild(chip);
+          });
+        }
+      }
+    }
+    fetch('/api/categorias')
+      .then(res => res.json())
+      .then(data => {
+        categoriasData = data.categorias;
+        renderChips();
+        syncSeleccionadas();
+      })
+      .catch(err => console.error('Error cargando categorías:', err));
+
+    // --- resto del código original ---
+    const form = document.getElementById('post-form') as HTMLFormElement;
+    const previewBtn = document.getElementById('preview-btn');
+    const closePreviewBtn = document.getElementById('close-preview');
+    const previewContainer = document.getElementById('preview-container');
+    const previewContent = document.getElementById('preview-content');
+    
+    if (previewBtn && previewContainer && previewContent) {
+      previewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const content = window.getEditorContent('new-post-editor');
+        const titleInput = document.getElementById('title') as HTMLInputElement;
+        const title = titleInput?.value || '';
+        
+        previewContent.innerHTML = `
+          <h1>${title || 'Sin título'}</h1>
+          <div class="prose">
+            ${content || 'Sin contenido'}
+          </div>
+        `;
+        previewContainer.style.display = 'block';
+      });
+    }
+    
+    if (closePreviewBtn && previewContainer) {
+      closePreviewBtn.addEventListener('click', () => {
+        previewContainer.style.display = 'none';
+      });
+    }
+    
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const content = window.getEditorContent('new-post-editor');
+        formData.set('content', content);
+        
+        try {
+          const response = await fetch('/api/create-post', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!response.ok) {
+            throw new Error('Error al crear el post');
+          }
+
+          window.location.href = '/admin';
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al crear el post. Por favor, intenta de nuevo.');
+        }
+      });
+    }
+  });
+</script>

@@ -1,0 +1,14 @@
+---
+import CategoryManagementReact from './CategoryManagement';
+import ClerkProviderWrapper from '../../ClerkProviderWrapper.jsx';
+// @ts-ignore — `permissions` y `user` inyectados por el middleware
+const { permissions, user } = (Astro as any).locals as any;
+---
+
+<ClerkProviderWrapper>
+  <CategoryManagementReact 
+    client:load 
+    permissions={permissions}
+    user={user}
+  />
+</ClerkProviderWrapper>

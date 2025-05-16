@@ -1,0 +1,228 @@
+---
+// import NavBar from '@/components/NavBar.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import '../styles/neumorphic.css';
+
+
+interface Props {
+  title?: string;
+  description?: string;
+  includeSidebar?: boolean;
+}
+
+const { 
+  title = "GEAB - Semillero de investigación Analítica de datos y Big Data", 
+  description = "Semillero de investigación Analítica de datos y Big Data, generando conocimiento e innovación para un mundo impulsado por datos.", 
+  includeSidebar = false 
+} = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <meta name="description" content={description}>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+    
+    <!-- Aplicar tema instantáneamente para evitar parpadeo -->
+    <script is:inline>
+      (function() {
+        try {
+          const savedTheme = localStorage.getItem('preferred-theme');
+          if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          } else if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+          } else {
+            // Auto theme based on user preference
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+              document.documentElement.setAttribute('data-theme', 'light');
+            }
+          }
+        } catch (e) {
+          console.error('Error al aplicar el tema inicial:', e);
+        }
+      })();
+    </script>
+    <script
+      async
+      defer
+      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.umd.js"
+      data-clerk-publishable-key={import.meta.env.PUBLIC_CLERK_PUBLISHABLE_KEY}
+    ></script>
+    <!-- Slot para contenido adicional en el head -->
+    <slot name="head" />
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js" defer></script>
+    <script is:inline>
+      document.addEventListener('DOMContentLoaded', () => {
+        AOS.init({ duration: 800, once: false, mirror: true });
+      });
+      // Reinitialize AOS after view transitions
+      document.addEventListener('astro:page-load', () => {
+        AOS.refresh();
+      });
+    </script>
+    
+    <style is:global>
+      /* Variables para los temas */
+      :root {
+        --bg-color: #f5f7fa;
+        --text-color: #333;
+        --primary-color: #007bff;
+        --primary-color-rgb: 0, 123, 255;
+        --secondary-color: #6c757d;
+        --accent-color: #28a745;
+        --border-color: #dee2e6;
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --card-bg: #ffffff;
+        --sidebar-bg: #ffffff;
+        --header-bg: #ffffff;
+        --hover-bg: #f2f2f2;
+        --input-bg: #fff;
+        --input-border: #ced4da;
+        --neu-shadow-dark: rgba(166, 180, 200, 0.7);
+        --neu-shadow-light: rgba(255, 255, 255, 0.8);
+        --box-shadow: 0 4px 6px var(--shadow-color);
+      }
+      
+      [data-theme="dark"] {
+        --bg-color: #121212;
+        --text-color: #e0e0e0;
+        --primary-color: #4dabf7;
+        --primary-color-rgb: 77, 171, 247;
+        --secondary-color: #adb5bd;
+        --accent-color: #40c057;
+        --border-color: #343a40;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --card-bg: #1e1e1e;
+        --sidebar-bg: #1e1e1e;
+        --header-bg: #1e1e1e;
+        --hover-bg: #333;
+        --input-bg: #2c2c2c;
+        --input-border: #495057;
+        --neu-shadow-dark: rgba(0, 0, 0, 0.6);
+        --neu-shadow-light: rgba(60, 60, 60, 0.2);
+        --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+      }
+      
+      /* Estilos base */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: 'Poppins', system-ui, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        transition: background-color 0.3s ease, color 0.3s ease;
+        line-height: 1.6;
+      }
+      
+      a {
+        color: var(--primary-color);
+        text-decoration: none;
+      }
+      
+      /* Estilos para el selector de tema flotante */
+      .theme-selector-float {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        background-color: var(--card-bg);
+        border-radius: 30px;
+        box-shadow: 0 4px 10px var(--shadow-color);
+        padding: 5px;
+        display: flex;
+        transition: all 0.3s ease;
+      }
+      
+      .theme-selector-float .theme-options {
+        display: flex;
+        gap: 0.25rem;
+      }
+      
+      .theme-selector-float .theme-option {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        background-color: transparent;
+        color: var(--text-color);
+        transition: all 0.2s ease;
+      }
+      
+      .theme-selector-float .theme-option svg {
+        width: 18px;
+        height: 18px;
+      }
+      
+      .theme-selector-float .theme-option:hover {
+        background-color: var(--hover-bg);
+      }
+      
+      .theme-selector-float .theme-option.active {
+        background-color: rgba(var(--primary-color-rgb), 0.1);
+        color: var(--primary-color);
+      }
+    </style>
+  </head>
+  
+  <body>
+    <Header />
+    <slot />
+    
+    <!-- Selector de tema flotante si no hay barra lateral -->
+    {!includeSidebar && (
+      <div class="theme-selector-float">
+        <div class="theme-options">
+          <button id="theme-light" class="theme-option" title="Tema claro">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+          <button id="theme-dark" class="theme-option" title="Tema oscuro">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+          <button id="theme-auto" class="theme-option" title="Tema automático">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    )}
+    
+    <!-- Script global para el tema -->
+    <script src="/theme.js" defer></script>
+    <Footer />
+  </body>
+</html> 

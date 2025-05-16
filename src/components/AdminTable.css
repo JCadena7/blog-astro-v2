@@ -1,0 +1,151 @@
+/* Variables para tema claro */
+:root {
+  --table-bg: #ffffff;
+  --table-border: #e2e8f0;
+  --table-text: #1a202c;
+  --table-header-bg: #f7fafc;
+  --table-hover: #f8fafc;
+  --estado-borrador-bg: #e2e8f0;
+  --estado-borrador-text: #4a5568;
+  --estado-publicado-bg: #c6f6d5;
+  --estado-publicado-text: #2f855a;
+  --btn-editar-bg: #ebf8ff;
+  --btn-editar-text: #3182ce;
+  --btn-editar-hover: #bee3f8;
+  --btn-eliminar-bg: #fff5f5;
+  --btn-eliminar-text: #e53e3e;
+  --btn-eliminar-hover: #fed7d7;
+}
+
+/* Variables para tema oscuro */
+[data-theme="dark"] {
+  --table-bg: #1a202c;
+  --table-border: #2d3748;
+  --table-text: #e2e8f0;
+  --table-header-bg: #2d3748;
+  --table-hover: #2d3748;
+  --estado-borrador-bg: #4a5568;
+  --estado-borrador-text: #e2e8f0;
+  --estado-publicado-bg: #2f855a;
+  --estado-publicado-text: #c6f6d5;
+  --btn-editar-bg: #2c5282;
+  --btn-editar-text: #ebf8ff;
+  --btn-editar-hover: #2b6cb0;
+  --btn-eliminar-bg: #9b2c2c;
+  --btn-eliminar-text: #fff5f5;
+  --btn-eliminar-hover: #c53030;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--table-bg);
+  color: var(--table-text);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--table-border);
+}
+
+.admin-table thead th {
+  background-color: var(--table-header-bg);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.admin-table tbody tr:hover {
+  background-color: var(--table-hover);
+}
+
+[data-theme="dark"] .admin-table tbody tr:hover {
+  background-color: #232a36;
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.estado-borrador {
+  background-color: var(--estado-borrador-bg);
+  color: var(--estado-borrador-text);
+}
+
+.estado-publicado {
+  background-color: var(--estado-publicado-bg);
+  color: var(--estado-publicado-text);
+}
+
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn .icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.btn-editar {
+  background-color: var(--btn-editar-bg);
+  color: var(--btn-editar-text);
+}
+
+.btn-editar:hover {
+  background-color: var(--btn-editar-hover);
+}
+
+.btn-eliminar {
+  background-color: var(--btn-eliminar-bg);
+  color: var(--btn-eliminar-text);
+}
+
+.btn-eliminar:hover {
+  background-color: var(--btn-eliminar-hover);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .btn span {
+    display: none;
+  }
+
+  .btn {
+    padding: 0.5rem;
+  }
+
+  .acciones {
+    justify-content: flex-end;
+  }
+} 

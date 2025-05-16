@@ -1,0 +1,200 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+import { clerkClient } from '@clerk/astro/server';
+import MdxEditorWrapper from '../../components/MdxEditorWrapper.jsx';
+import PreviewButton from '../../components/PreviewButton.jsx';
+import AdminLayout from '../../layouts/AdminLayout.astro';
+
+// Verificar que el usuario esté autenticado a través del middleware
+// El middleware ya redirigirá a /admin/login si no está autenticado
+---
+
+<!doctype html>
+<html lang="es">
+	<head>
+		<BaseHead title={`Crear Nuevo Post - ${SITE_TITLE}`} description="Crea un nuevo post para el blog" />
+		<style>
+			main {
+				width: 100%;
+				max-width: 960px;
+				margin: 0 auto;
+				padding: 1rem;
+			}
+			.form-header {
+				margin-bottom: 2rem;
+			}
+			.form-group {
+				margin-bottom: 1.5rem;
+			}
+			label {
+				display: block;
+				margin-bottom: 0.5rem;
+				font-weight: bold;
+			}
+			input, textarea {
+				width: 100%;
+				padding: 0.75rem;
+				border: 1px solid rgba(var(--gray), 0.3);
+				border-radius: 4px;
+				font-size: 1rem;
+				font-family: inherit;
+			}
+			textarea {
+				min-height: 300px;
+				font-family: monospace;
+			}
+			.buttons {
+				display: flex;
+				gap: 1rem;
+				margin-top: 2rem;
+			}
+			.btn {
+				padding: 0.75rem 1.5rem;
+				border: none;
+				border-radius: 4px;
+				font-size: 1rem;
+				font-weight: bold;
+				cursor: pointer;
+			}
+			.btn-primary {
+				background: rgb(var(--accent));
+				color: white;
+			}
+			.btn-secondary {
+				background: rgba(var(--gray), 0.2);
+				color: rgb(var(--black));
+			}
+			.mdx-info {
+				margin-top: 0.5rem;
+				font-size: 0.9rem;
+				color: rgba(var(--gray), 0.8);
+			}
+			.preview {
+				margin-top: 2rem;
+				padding: 1.5rem;
+				border: 1px dashed rgba(var(--gray), 0.5);
+				border-radius: 4px;
+			}
+			.preview-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-bottom: 1rem;
+			}
+			.editor-container {
+				border: 1px solid rgba(var(--gray), 0.3);
+				border-radius: 4px;
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="form-header">
+				<h1>Crear Nuevo Post</h1>
+				<p>Utiliza el editor visual para crear contenido con componentes de React y sintaxis de Markdown.</p>
+			</div>
+			
+			<form id="post-form" action="/api/create-post" method="POST">
+				<div class="form-group">
+					<label for="title">Título</label>
+					<input type="text" id="title" name="title" required>
+				</div>
+				
+				<div class="form-group">
+					<label for="description">Descripción</label>
+					<input type="text" id="description" name="description" required>
+				</div>
+				
+				<div class="form-group">
+					<label for="heroImage">URL de Imagen Destacada</label>
+					<input type="url" id="heroImage" name="heroImage" placeholder="https://ejemplo.com/imagen.jpg">
+				</div>
+				
+				<div class="form-group">
+					<label for="content">Contenido</label>
+					<MdxEditorWrapper 
+              client:load
+              id="new-post-editor" 
+              initialContent=""
+            />
+					<div class="mdx-info">
+						<p>Utiliza las herramientas de la barra superior para formatear tu contenido.</p>
+					</div>
+				</div>
+				
+				<div class="buttons">
+					<button type="submit" class="btn btn-primary">Publicar Post</button>
+					<a href="/admin" class="btn btn-secondary">Cancelar</a>
+					<PreviewButton client:load editorId="new-post-editor" />
+				</div>
+			</form>
+			
+			<!-- El componente PreviewButton maneja la vista previa -->
+		</main>
+		<Footer />
+		
+		<script>
+			// Manejo básico del formulario y vista previa
+			document.addEventListener('DOMContentLoaded', () => {
+				const form = document.getElementById('post-form') as HTMLFormElement;
+				const previewBtn = document.getElementById('preview-btn');
+				const closePreviewBtn = document.getElementById('close-preview');
+				const previewContainer = document.getElementById('preview-container');
+				const previewContent = document.getElementById('preview-content');
+				
+				if (previewBtn && previewContainer && previewContent) {
+					previewBtn.addEventListener('click', (e) => {
+						e.preventDefault();
+						const content = window.getEditorContent('new-post-editor');
+						const titleInput = document.getElementById('title') as HTMLInputElement;
+						const title = titleInput?.value || '';
+						
+						previewContent.innerHTML = `
+							<h1>${title || 'Sin título'}</h1>
+							<div class="prose">
+								${content || 'Sin contenido'}
+							</div>
+						`;
+						previewContainer.style.display = 'block';
+					});
+				}
+				
+				if (closePreviewBtn && previewContainer) {
+					closePreviewBtn.addEventListener('click', () => {
+						previewContainer.style.display = 'none';
+					});
+				}
+				
+				if (form) {
+					form.addEventListener('submit', async (e) => {
+						e.preventDefault();
+						const formData = new FormData(form);
+						const content = window.getEditorContent('new-post-editor');
+						formData.set('content', content);
+						
+						try {
+							const response = await fetch('/api/create-post', {
+								method: 'POST',
+								body: formData
+							});
+
+							if (!response.ok) {
+								throw new Error('Error al crear el post');
+							}
+
+							window.location.href = '/admin';
+						} catch (error) {
+							console.error('Error:', error);
+							alert('Error al crear el post. Por favor, intenta de nuevo.');
+						}
+					});
+				}
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,248 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import DashboardStats from '../../components/admin/DashboardStats.astro';
+import UserManagement from '../../components/admin/user/UserManagement.astro';
+import RoleManagement from '../../components/admin/role/RoleManagement.astro';
+import PostManagement from '../../components/admin/post/PostManagement.astro';
+import { pool } from '../../db/pool';
+
+// Verificar si hay errores en los webhooks
+const webhookErrors = await pool.query(`
+  SELECT COUNT(*) as error_count 
+  FROM usuarios 
+  WHERE clerk_id IS NULL OR rol_id IS NULL
+`);
+
+const hasErrors = webhookErrors.rows[0].error_count > 0;
+
+const posts = await pool.query(`
+  SELECT p.id, p.titulo, p.created_at, ep.nombre as estado
+  FROM posts p
+  JOIN estados_publicacion ep ON p.estado_id = ep.id
+  ORDER BY p.created_at DESC
+`);
+
+const handleEdit = (id: string) => {
+  console.log('Editar post:', id);
+};
+
+const handleDelete = async (id: string) => {
+  if (confirm('¿Estás seguro de que quieres eliminar este post?')) {
+    await pool.query('DELETE FROM posts WHERE id = $1', [id]);
+    window.location.reload();
+  }
+};
+
+interface TabButton extends HTMLButtonElement {
+  dataset: {
+    tab: string;
+  };
+}
+---
+
+<AdminLayout title="Panel de Administración">
+  <div class="dashboard">
+    <header class="dashboard-header">
+      <h1>Panel de Administración</h1>
+      <p>Bienvenido al panel de administración del blog</p>
+    </header>
+
+    <DashboardStats />
+
+    <!-- <div class="management-sections">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="posts">Posts</button>
+        <button class="tab-btn" data-tab="users">Usuarios</button>
+        <button class="tab-btn" data-tab="roles">Roles</button>
+      </div>
+
+      <div class="tab-content">
+        <div class="tab-pane active" id="posts-tab">
+          <PostManagement />
+        </div>
+        <div class="tab-pane" id="users-tab">
+          <UserManagement />
+        </div>
+        <div class="tab-pane" id="roles-tab">
+          <RoleManagement />
+        </div>
+      </div>
+    </div> -->
+  </div>
+</AdminLayout>
+
+<style>
+  .dashboard {
+    padding: 1rem;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .dashboard-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    color: var(--text-color);
+  }
+
+  .dashboard-header p {
+    margin: 0.5rem 0 0 0;
+    color: var(--text-muted);
+  }
+
+  .management-sections {
+    margin-top: 1.5rem;
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 
+      4px 4px 8px var(--neu-shadow-dark),
+      -4px -4px 8px var(--neu-shadow-light);
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .tabs::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover {
+    color: var(--text-color);
+    background-color: var(--hover-bg);
+  }
+
+  .tab-btn.active {
+    color: var(--primary-color);
+    background-color: var(--card-bg);
+  }
+
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+  }
+
+  .tab-content {
+    padding: 0;
+    border-radius: 0 0 12px 12px;
+  }
+
+  .tab-pane {
+    display: none;
+    padding: 0;
+  }
+
+  .tab-pane.active {
+    display: block;
+  }
+  
+  @media (max-width: 992px) {
+    .dashboard-header h1 {
+      font-size: 1.35rem;
+    }
+    
+    .tab-btn {
+      padding: 0.875rem 1.25rem;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .dashboard {
+      padding: 0.75rem;
+    }
+    
+    .dashboard-header h1 {
+      font-size: 1.25rem;
+    }
+    
+    .dashboard-header p {
+      font-size: 0.875rem;
+    }
+    
+    .tabs {
+      padding: 0.5rem 0.5rem 0;
+      gap: 0.25rem;
+    }
+    
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .dashboard {
+      padding: 0.5rem;
+    }
+    
+    .dashboard-header {
+      margin-bottom: 1rem;
+    }
+    
+    .dashboard-header h1 {
+      font-size: 1.125rem;
+    }
+    
+    .management-sections {
+      margin-top: 1rem;
+      border-radius: 8px;
+    }
+    
+    .tabs {
+      padding: 0 0.5rem;
+    }
+    
+    .tab-btn {
+      padding: 0.625rem 0.875rem;
+      font-size: 0.8125rem;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Desactivar todos los tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        tabPanes.forEach(p => p.classList.remove('active'));
+
+        // Activar el tab seleccionado
+        tab.classList.add('active');
+        const tabId = `${tab instanceof HTMLElement ? tab.getAttribute('data-tab') : ''}-tab`;
+        document.getElementById(tabId)?.classList.add('active');
+      });
+    });
+  });
+</script>

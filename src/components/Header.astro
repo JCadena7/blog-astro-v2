@@ -1,0 +1,167 @@
+---
+import ThemeSelector from './ThemeSelector.tsx';
+import AuthSection from './AuthSection.jsx';
+
+const navLinks = [
+  { name: "Inicio", url: "/#hero" },
+  { name: "Nosotros", url: "/#about" },
+  { name: "Investigación", url: "/#research" },
+  { name: "Equipo", url: "/#team" },
+  { name: "Publicaciones", url: "/#publications" },
+  { name: "Contacto", url: "/#contact" },
+  { name: "Blog", url: "/blog" },
+  { name: "Dashboard", url: "/admin" },
+//   { name: "Login", url: "/login" },
+//   { name: "Register", url: "/register" }
+];
+
+const auth = Astro.locals.auth;
+const authData = typeof auth === 'function' ? auth() : auth;
+const isAuthenticated = !!authData?.userId;
+
+const filteredNavLinks = navLinks.filter(link => {
+  if (isAuthenticated && (link.name === 'Login' || link.name === 'Register')) return false;
+  if (!isAuthenticated && link.name === 'Dashboard') return false;
+  return true;
+});
+---
+
+<header class="fixed w-full left-0 right-0 z-50 bg-white shadow-md transition-all duration-300" id="navbar">
+  <nav class="container mx-auto px-4 py-4 flex items-center justify-between overflow-x-auto max-w-full">
+    <a href="/" class="flex items-center">
+      <img src="/logo.png" alt="GEAB Logo" class="h-12 mr-2" />
+    </a>
+    {Astro.url.pathname.includes('/admin') && (
+      <button class="sidebar-toggle mr-2 md:hidden" id="sidebarToggle" aria-label="Abrir panel de administración" style="position:static; width:40px; height:40px; background:transparent; color:var(--primary-color); box-shadow:none;">
+        {/* Ícono de panel de control/dashboard */}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28">
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+      </button>
+    )}
+    
+    <div class="hidden md:flex space-x-8">
+      {filteredNavLinks.map(link => (
+        <a href={link.url} class="font-medium tracking-wide transition-colors hover:text-[var(--primary-color)]">
+          {link.name}
+        </a>
+      ))}
+    </div>
+    {!Astro.url.pathname.includes('/admin') && (
+      <button
+        id="menuButton"
+        class="md:hidden text-neutral-800 focus:outline-none"
+        aria-label="Toggle Menu"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    )}
+    <div class="flex items-center gap-4">
+      <!-- <ThemeSelector client:load /> -->
+      <AuthSection client:load isAuthenticated={isAuthenticated} />
+    </div>
+  </nav>
+
+  <div
+    id="mobileMenu"
+    class="hidden md:hidden bg-white shadow-lg absolute w-full left-0 right-0 top-full transition-all duration-300 overflow-y-auto max-h-[80vh]"
+    style="max-height: 0px;"
+  >
+    <div class="px-4 py-2">
+      {filteredNavLinks.map(link => (
+        <a href={link.url} class="block py-2 font-medium tracking-wide hover:text-[var(--primary-color)]">
+          {link.name}
+        </a>
+      ))}
+    </div>
+  </div>
+</header>
+
+<script>
+  // Mobile menu toggle
+  function setupMobileMenu() {
+    const menuButton = document.getElementById('menuButton');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    menuButton?.addEventListener('click', (e) => {
+      e.stopPropagation(); // Evita que el click cierre el menú inmediatamente
+      if (mobileMenu && mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+        setTimeout(() => {
+          mobileMenu.style.maxHeight = '80vh';
+        }, 10);
+      } else if (mobileMenu) {
+        mobileMenu.style.maxHeight = '0px';
+        setTimeout(() => {
+          mobileMenu.classList.add('hidden');
+        }, 300);
+      }
+    });
+
+    // Close menu when clicking a link
+    const links = mobileMenu?.querySelectorAll('a');
+    links?.forEach(link => {
+      link.addEventListener('click', () => {
+        if (mobileMenu) mobileMenu.style.maxHeight = '0px';
+        setTimeout(() => {
+          mobileMenu?.classList.add('hidden');
+        }, 300);
+      });
+    });
+
+    // Evita que el click dentro del menú cierre el menú
+    if (mobileMenu) {
+      mobileMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+    // Cierra el menú solo si el click es fuera del menú y del botón
+    document.addEventListener('click', (e) => {
+      if (!mobileMenu || !menuButton) return;
+      if (!mobileMenu.classList.contains('hidden')) {
+        const target = e.target as Node;
+        if (
+          target !== mobileMenu &&
+          target !== menuButton &&
+          !mobileMenu.contains(target) &&
+          !menuButton.contains(target)
+        ) {
+          mobileMenu.style.maxHeight = '0px';
+          setTimeout(() => {
+            mobileMenu.classList.add('hidden');
+          }, 300);
+        }
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    setupMobileMenu();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    setupMobileMenu();
+  });
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('profileMenuButton');
+  const menu = document.getElementById('profileMenu');
+  if (!btn || !menu) return;
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => {
+    menu.classList.add('hidden');
+  });
+  menu.addEventListener('click', (e) => e.stopPropagation());
+});
+</script>
+
