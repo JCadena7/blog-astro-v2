@@ -1,11 +1,11 @@
 ---
-import BaseHead from '../../components/BaseHead.astro';
-import Header from '../../components/Header.astro';
-import Footer from '../../components/Footer.astro';
+import BaseHead from '../../components/layout/BaseHead.astro';
+import Header from '../../components/layout/Header.astro';
+import Footer from '../../components/layout/Footer.astro';
 import { SITE_TITLE } from '../../consts';
 import { clerkClient } from '@clerk/astro/server';
-import MdxEditorWrapper from '../../components/MdxEditorWrapper.jsx';
-import PreviewButton from '../../components/PreviewButton.jsx';
+import MdxEditorWrapper from '../../components/mdx/MdxEditorWrapper.jsx';
+import PreviewButton from '../../components/ui/PreviewButton.jsx';
 import AdminLayout from '../../layouts/AdminLayout.astro';
 
 // Verificar que el usuario esté autenticado a través del middleware

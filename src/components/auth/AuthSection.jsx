@@ -1,5 +1,5 @@
 import { UserButton, ClerkProvider, useUser } from "@clerk/clerk-react";
-import { useUserRole } from '../hooks/useUserRole';
+import { useUserRole } from '../../hooks/useUserRole';
 import './AuthSection.css';
 
 // Componente interno que usa los hooks
@@ -19,7 +19,7 @@ function AuthContent({ isAuthenticated }) {
           </a> */}
           <div className="user-button-wrapper">
             <UserButton 
-              afterSignOutUrl="/"
+              afterSwitchSessionUrl="/"
               appearance={{
                 elements: {
                   userButtonBox: "user-button-box",
