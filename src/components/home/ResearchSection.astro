@@ -1,32 +1,68 @@
 ---
-const researchAreas = [
-  { title: 'Machine Learning', description: 'Desarrollamos algoritmos de aprendizaje automático para identificar patrones y predecir comportamientos en conjuntos de datos complejos.', icon: 'brain' },
-  { title: 'Análisis Predictivo', description: 'Utilizamos técnicas estadísticas avanzadas para anticipar tendencias y resultados basados en datos históricos.', icon: 'chart-line' },
-  { title: 'Big Data Analytics', description: 'Procesamos y analizamos volúmenes masivos de datos para extraer insights valiosos para la toma de decisiones.', icon: 'database' },
-  { title: 'Visualización de Datos', description: 'Creamos representaciones visuales interactivas que facilitan la comprensión de información compleja.', icon: 'chart-pie' },
-  { title: 'Inteligencia Artificial', description: 'Investigamos aplicaciones de IA para automatizar procesos y resolver problemas complejos en diferentes dominios.', icon: 'robot' },
-  { title: 'Ciencia de Datos Aplicada', description: 'Aplicamos metodologías de ciencia de datos para resolver problemas reales en sectores como salud, educación y medio ambiente.', icon: 'microscope' }
+const services = [
+{
+    title: 'Marketing de Contenidos',
+    description: 'Creamos contenido relevante y valioso que atrae y retiene a tu audiencia ideal.',
+    icon: 'content'
+  },
+  {
+    title: 'SEO Local',
+    description: 'Optimizamos tu presencia en búsquedas locales para atraer clientes de tu área.',
+    icon: 'search'
+  },
+  {
+    title: 'Publicidad Digital',
+    description: 'Campañas efectivas en Google Ads y redes sociales con presupuestos optimizados.',
+    icon: 'ads'
+  },
+  {
+    title: 'Redes Sociales',
+    description: 'Gestión profesional de tus redes sociales para construir una comunidad engaged.',
+    icon: 'social'
+  },
+  {
+    title: 'Email Marketing',
+    description: 'Estrategias de email marketing para nutrir leads y fidelizar clientes.',
+    icon: 'email'
+  },
+  {
+    title: 'Análisis y Reportes',
+    description: 'Informes detallados y análisis de datos para optimizar tus campañas.',
+    icon: 'analytics'
+  }
 ];
 
-const currentProjects = [
-  { title: 'Predicción de rendimiento académico mediante técnicas de Machine Learning', description: 'Desarrollo de modelos predictivos para identificar factores que influyen en el éxito académico.', image: 'https://images.pexels.com/photos/4145153/pexels-photo-4145153.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
-  { title: 'Análisis de sentimientos en redes sociales para evaluar satisfacción ciudadana', description: 'Procesamiento de lenguaje natural aplicado al estudio de opiniones sobre servicios públicos.', image: 'https://images.pexels.com/photos/267350/pexels-photo-267350.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
-  { title: 'Sistema de recomendación personalizado basado en datos de comportamiento', description: 'Algoritmos de filtrado colaborativo para mejorar la experiencia de usuario en plataformas digitales.', image: 'https://images.pexels.com/photos/7103/writing-notes-idea-conference.jpg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' }
+const caseStudies = [
+{
+    title: 'Restaurante Local: +200% en Reservas',
+    description: 'Estrategia combinada de SEO local y publicidad en redes sociales.',
+    image: 'https://images.pexels.com/photos/2290070/pexels-photo-2290070.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+  },
+  {
+    title: 'Tienda Online: +150% en Ventas',
+    description: 'Optimización de embudo de conversión y campañas de remarketing.',
+    image: 'https://images.pexels.com/photos/3183197/pexels-photo-3183197.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+  },
+  {
+    title: 'Consultora B2B: +300% Leads',
+    description: 'Marketing de contenidos y LinkedIn Ads para generación de leads.',
+    image: 'https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'
+  }
 ];
 ---
 
-<section id="research" class="py-20">
+<section id="services" class="py-20">
   <div class="container mx-auto px-4">
     <div class="text-center mb-16" data-aos="fade-up">
-      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-800">Áreas de Investigación</h2>
+      <h2 class="text-3xl md:text-4xl font-bold mb-4 text-neutral-800">Nuestros Servicios</h2>
       <div class="w-20 h-1 bg-primary-500 mx-auto mb-6"></div>
       <p class="text-lg text-neutral-600 max-w-3xl mx-auto">
-        Nuestro trabajo se enfoca en desarrollar soluciones innovadoras basadas en datos para resolver problemas complejos en diversos sectores.
+        Soluciones de marketing digital diseñadas específicamente para las necesidades y presupuestos de pequeñas y medianas empresas.
       </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-      {researchAreas.map((area, index) => (
+      {services.map((area, index) => (
         <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow border border-neutral-100" data-aos="fade-up" data-aos-delay={index * 100}>
           <div class="w-12 h-12 bg-primary-50 rounded-full flex items-center justify-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,7 +84,7 @@ const currentProjects = [
 
     <h3 class="text-2xl font-bold mb-8 text-center" data-aos="fade-up">Proyectos Destacados</h3>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      {currentProjects.map((project, index) => (
+      {caseStudies.map((project, index) => (
         <div class="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow" data-aos="fade-up" data-aos-delay={index * 150}>
           <img src={project.image} alt={project.title} class="w-full h-48 object-cover" />
           <div class="p-6">
@@ -66,7 +102,7 @@ const currentProjects = [
     </div>
 
     <div class="text-center mt-12" data-aos="fade-up">
-      <a href="#" class="inline-block px-6 py-3 rounded-full bg-white text-primary-500 font-medium border border-primary-500 hover:bg-primary-50 transition-colors">Ver más proyectos</a>
+      <a href="/blog" class="inline-block px-6 py-3 rounded-full bg-white text-primary-500 font-medium border border-primary-500 hover:bg-primary-50 transition-colors">Ver más proyectos</a>
     </div>
   </div>
 </section>
